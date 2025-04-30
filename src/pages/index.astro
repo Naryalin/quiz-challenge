@@ -1,9 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Arrow from "../components/Arrow.astro";
 ---
 
 <Layout title="Welcome to Quizzler">
-	<main class="min-w-screen min-h-screen">
+	<main class="min-w-screen min-h-screen w-full">
+		<img id="figure" src="/2D Figure.svg" alt="2D Figure" class="fixed -top-[73%] -left-[27%] -z-10">
 		<section id="hero" class="absolute left-2/5 top-4/12">
 			<h1 class="text-center">Quizzler</h1>
 			<div id="By" class="flex flex-row gap-[1vw] justify-end">
@@ -13,25 +15,47 @@ import Layout from '../layouts/Layout.astro';
 					<img src="/Forge Logotype.svg" alt="Forge Logotype" class="h-[3vw] w-auto">
 				</div>
 			</div>
+			<div class="flex justify-end mt-[3vw]">
+				<a href="/quiz" class="flex justify-end items-center hover:underline w-fit">
+					Let's start the Quiz
+					<Arrow/>
+				</a>
+			</div>
 		</section>
 	</main>
 </Layout>
 
 	
 <style>
+	#figure{
+		width: 100%;
+		min-width: 130vw;
+		height: auto;
+		transform: rotate(155.32deg);
+	}
+
 	h1{
 		font-weight: 400;
 		font-size: 16vw;
 		line-height: 76%;
 		color: #EBEFF2;
 	}
-	p{
+
+	p, a{
 		font-weight: 400;
-		font-size: 1vw;
 		line-height: 100%;
 		color: #EBEFF2;
 		text-transform: uppercase;
 	}
+
+	p{
+		font-size: 1vw;
+	}
+
+	a{
+		font-size: 1rem;
+	}
+
 	@media screen and (max-width:1024px){
 		h1{
 			font-size: 24vw;
@@ -48,15 +72,11 @@ import Layout from '../layouts/Layout.astro';
 		h1{
 			font-size: 32vw;
 		}
+
 		p{
 			font-size: 2.5vw;
 		}
-		#hero{
-			left: 6%;
-		}
-	}
 
-	@media screen and (max-width:480px){
 		#hero{
 			left: 0;
 			top: 0;
@@ -64,6 +84,11 @@ import Layout from '../layouts/Layout.astro';
 			align-items: center;
 			justify-content: center;
 		}
+
+		#figure{
+			top: -23%;
+		}
+
 		main{
 			position: relative;
 			display: flex;
@@ -72,3 +97,9 @@ import Layout from '../layouts/Layout.astro';
 		}
 	}
 </style>
+<script>
+	const anchor = document.querySelector('a') as HTMLAnchorElement;
+	const arrow = document.getElementsByClassName('arrow')[0] as HTMLElement;
+	anchor.addEventListener('mouseover', () => arrow.classList.add('go'));
+	anchor.addEventListener('mouseout', () => arrow.classList.remove('go'));
+</script>
