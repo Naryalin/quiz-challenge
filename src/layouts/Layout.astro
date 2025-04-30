@@ -38,7 +38,7 @@ const { title } = Astro.props;
 		<ClientRouter />
 	</head>
 	<body>
-		<AnimatedBackground />
+		<AnimatedBackground transition:name="bg" transition:persist/>
 		<slot />
 	</body>
 </html>

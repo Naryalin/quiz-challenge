@@ -1,11 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Arrow from "../components/Arrow.astro";
+import { questions as questionsStore } from "../store/questions";
+import { getQuizzes } from "../services/quizAPI";
+
+// Get questions
+const questions = await getQuizzes();
+let firstId
+if (questions.length > 0) {
+  firstId = questions[0].id;
+  questionsStore.set(questions);
+}
 ---
 
 <Layout title="Welcome to Quizzler">
 	<main class="min-w-screen min-h-screen w-full">
-		<img id="figure" src="/2D Figure.svg" alt="2D Figure" class="fixed -top-[73%] -left-[27%] -z-10">
+		<div id="figure" class="fixed -top-[73%] -left-[27%] -z-10" transition:name="figure"></div>
 		<section id="hero" class="absolute left-2/5 top-4/12">
 			<h1 class="text-center">Quizzler</h1>
 			<div id="By" class="flex flex-row gap-[1vw] justify-end">
@@ -16,7 +26,7 @@ import Arrow from "../components/Arrow.astro";
 				</div>
 			</div>
 			<div class="flex justify-end mt-[3vw]">
-				<a href="/quiz" class="flex justify-end items-center hover:underline w-fit">
+				<a href=`/quiz/${firstId}` class="flex justify-end items-center hover:underline w-fit">
 					Let's start the Quiz
 					<Arrow/>
 				</a>
@@ -28,9 +38,13 @@ import Arrow from "../components/Arrow.astro";
 	
 <style>
 	#figure{
-		width: 100%;
-		min-width: 130vw;
-		height: auto;
+		background-color: #EBEFF2;
+		-webkit-mask: url("/2D Figure.svg") no-repeat center;
+		mask: url("/2D Figure.svg") no-repeat center;
+		aspect-ratio: 1/1;
+		mask-size: contain;
+        width: 100%;
+        min-width: 130vw;
 		transform: rotate(155.32deg);
 	}
 
