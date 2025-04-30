@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getQuizzes } from "../services/quizAPI";
+import QuizApp from "../components/quiz/QuizApp";
+
+const questions = await getQuizzes();
+---
+<Layout title=`Question` >
+    <QuizApp questions={questions}>
+        <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
+    </QuizApp>
+</Layout>

@@ -11,12 +11,6 @@
         const ctx = canvas?.getContext("2d") as CanvasRenderingContext2D;
         const figure = document.getElementById("figure") as HTMLElement;
 
-        function colorMatch(a: number[], b: number[], threshold = 10) {
-            return a.every((val, i) => Math.abs(val - b[i]) < threshold);
-        }
-        const figureColorA = "#4242E0";
-        const figureColorB = "#959EA6";
-
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -46,6 +40,16 @@
                     currentFigureColor[i] = lerp(currentFigureColor[i], targetFigureColor[i], 0.01);
                 }
             }
+            const textElements = document.querySelectorAll("h1, p, a");
+            textElements.forEach((el) => {
+                (el as HTMLElement).style.color = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+            });
+
+            const options = document.querySelectorAll(".valid-answer");
+            options.forEach((el) => {
+                (el as HTMLElement).style.borderColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+            })
+            
             figure.style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
 
             ctx.fillStyle = `rgb(${currentColor.map(Math.round).join(",")})`;
@@ -94,7 +98,7 @@
                     targetColor = [0, 0, 0];
                     targetFigureColor = [0, 0, 0];
                 }
-            }, 8000); // change color every 8 seconds
+            }, 25000); // change color every 25 seconds
         }
     })
 
