@@ -1,0 +1,75 @@
+---
+
+---
+<canvas id="bgCanvas" class="fixed top-0 left-0 w-full h-full -z-10" transition:name="bg"></canvas>
+<script>
+	// Using a canvas for the background due to the limitation of View Transitions
+	// which do not preserve the state of CSS animations.
+	// For more details, refer to: https://docs.astro.build/en/guides/view-transitions/
+
+	const canvas = document.getElementById("bgCanvas") as HTMLCanvasElement;
+	const ctx = canvas?.getContext("2d") as CanvasRenderingContext2D;
+
+	function resizeCanvas() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	resizeCanvas();
+	window.addEventListener("resize", resizeCanvas);
+
+	let currentColor = [66, 66, 224];
+	let targetColor = currentColor;
+	let isStatic = true;
+
+	function hexToRgb(hex: string) {
+		const match = hex.match(/[A-Fa-f0-9]{2}/g);
+		return match ? match.map((x: string) => parseInt(x, 16)) : null;
+	}
+	function lerp(a: number, b: number, t: number) {
+		return a + (b - a) * t;
+	}
+
+	function animate() {
+        if (!isStatic) {
+            for (let i = 0; i < 3; i++) {
+                currentColor[i] = lerp(currentColor[i], targetColor[i], 0.01);
+            }
+        }
+        ctx.fillStyle = `rgb(${currentColor.map(Math.round).join(",")})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(animate);
+	}
+	animate();
+
+	const isHome = window.location.pathname === "/";
+	if (isHome) {
+		isStatic = true;
+		const rgb = hexToRgb("4242E0");
+		if (rgb) {
+			currentColor = rgb;
+			targetColor = currentColor;
+		} else {
+			console.error("Error converting hex to RGB");
+		}
+	} else {
+		isStatic = false;
+		const rgb = hexToRgb("C8D2DA");
+		if (rgb) {
+			targetColor = rgb;
+		} else {
+			console.error("Error converting hex to RGB");
+			targetColor = [66, 66, 224]; 
+		}
+
+		setInterval(() => {
+			const alt = targetColor[0] === 200; // C8D2DA
+			const rgb = hexToRgb(alt ? "2A2C2D" : "C8D2DA");
+			if (rgb) {
+				targetColor = rgb;
+			} else {
+				console.error("Error converting hex to RGB");
+				targetColor = [0, 0, 0]; // por ejemplo
+			}
+		}, 8000); // change color every 8 seconds
+	}
+</script>

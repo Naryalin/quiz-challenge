@@ -1,18 +1,74 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout title="Welcome to Quizzler">
-	<main>
-		<h1 class="text-3xl ml-4">Test</h1>
+	<main class="min-w-screen min-h-screen">
+		<section id="hero" class="absolute left-2/5 top-4/12">
+			<h1 class="text-center">Quizzler</h1>
+			<div id="By" class="flex flex-row gap-[1vw] justify-end">
+				<p class="text-center mt-[-0.5vw]">By:</p>
+				<div class="flex flex-row items-center justify-center gap-[0.5vw]">
+					<img src="/Forge Isotype.svg" alt="Forge Isotype" class="h-[3vw] w-auto">
+					<img src="/Forge Logotype.svg" alt="Forge Logotype" class="h-[3vw] w-auto">
+				</div>
+			</div>
+		</section>
 	</main>
 </Layout>
+
+	
 <style>
 	h1{
-		font-family: 'Bebas Neue';
+		font-weight: 400;
+		font-size: 16vw;
+		line-height: 76%;
+		color: #EBEFF2;
+	}
+	p{
+		font-weight: 400;
+		font-size: 1vw;
+		line-height: 100%;
+		color: #EBEFF2;
+		text-transform: uppercase;
+	}
+	@media screen and (max-width:1024px){
+		h1{
+			font-size: 24vw;
+		}
+		p{
+			font-size: 1.5vw;
+		}
+		#hero{
+			left: 22%;
+		}
+	}
+
+	@media screen and (max-width:768px){
+		h1{
+			font-size: 32vw;
+		}
+		p{
+			font-size: 2.5vw;
+		}
+		#hero{
+			left: 6%;
+		}
+	}
+
+	@media screen and (max-width:480px){
+		#hero{
+			left: 0;
+			top: 0;
+			position: relative;
+			align-items: center;
+			justify-content: center;
+		}
+		main{
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 	}
 </style>

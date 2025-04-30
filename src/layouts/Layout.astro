@@ -1,4 +1,5 @@
 ---
+import AnimatedBackground from "../components/AnimatedBackground.astro";
 import "../styles/global.css";
 import ClientRouter from "astro/components/ClientRouter.astro";
 interface Props {
@@ -37,15 +38,34 @@ const { title } = Astro.props;
 		<ClientRouter />
 	</head>
 	<body>
+		<AnimatedBackground />
 		<slot />
 	</body>
 </html>
 <style is:global>
 	@font-face {
 		font-family: 'Bebas Neue';
-		src: url('/fonts/Bebas_Neue/BebasNeue-Regular.woff2') format('woff2');
+		src: url('/fonts/Bebas_Neue/BebasNeue-Regular.woff2') format('woff2'),
+			url('/fonts/Bebas_Neue/BebasNeue-Regular.woff') format('woff'),
+			url('/fonts/Bebas_Neue/BebasNeue-Regular.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 		font-display: swap;
+	}
+	@font-face {
+		font-family: 'Sora';
+		src: url('/fonts/Sora/Sora-VariableFont_wght.woff2') format('woff2'),
+			url('/fonts/Sora/Sora-VariableFont_wght.woff') format('woff'),
+			url('/fonts/Sora/Sora-VariableFont_wght.ttf') format('truetype');
+		font-weight: normal;
+		font-style: normal;
+		font-display: swap;
+	}
+	h1, h2{
+		font-family: 'Bebas Neue', cursive;
+	}
+
+	p{
+		font-family: 'Sora', sans-serif;
 	}
 </style>
