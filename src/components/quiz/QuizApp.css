@@ -25,6 +25,19 @@ p, a{
     font-size: 2vw;
 }
 
+.answer{
+    font-size: 1.5vw;
+}
+
+.letter-answer{
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2vw;
+}
+
+.next{
+    font-size: 1.5vw;
+}
+
 a{
     font-size: 1rem;
 }

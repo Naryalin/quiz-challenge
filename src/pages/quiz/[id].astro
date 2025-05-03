@@ -1,0 +1,214 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { questions } from "../../store/questions";
+import { Clock } from "lucide";
+import LucideIcon from "../../components/LucideIcon.astro";
+
+const { id } = Astro.params as { id: string };
+
+const questionIndex = questions.get().findIndex((q) => q.id === parseInt(id));
+const question = questionIndex !== -1 ? questions.get()[questionIndex] : null;
+const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().length ? questions.get()[questionIndex + 1].id : null;
+---
+<Layout title=`Question ${questionIndex + 1}` >
+    <main class="min-w-screen min-h-screen w-full overflow-hidden">
+        <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
+        <h1 class="text-center mt-20">Question {questionIndex + 1} / {questions.get().length}</h1>
+        <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
+		<div class="flex items-center gap-2">
+			<LucideIcon icon={Clock} className="h-4 w-4" />
+			<span class={`font-medium 'text-red-500' : ''}`}>0s</span>
+		</div>
+		<section class="Options flex items-center justify-center flex-col gap-2">
+			{
+				Object.entries(question?.answers || {}).map(([key, answer], index) => 
+				(
+					!!answer  && (
+						<div class="fragment-container max-w-[50%] w-full">
+							<div
+								class={`valid-answer p-4 border-2 w-full cursor-pointer transition-all bg-white}`}
+								transition:name={`${key}`}
+							>
+								<div class="flex items-center justify-start">
+									<span class={`letter-answer rounded-full border-2 w-8 h-8 min-h-8 min-w-8 flex items-center justify-center`}>
+										{String.fromCharCode(65 + index)}
+									</span>
+									<p class={`answer ml-2`}>{answer}</p>
+								</div>
+							</div>
+						</div>
+					)
+				))
+			}
+		</section>
+    </main>
+</Layout>
+<style>
+    #figure{
+        background-color: #4242E0;
+		-webkit-mask: url("/2D Figure.svg") no-repeat center;
+		mask: url("/2D Figure.svg") no-repeat center;
+		aspect-ratio: 1/1;
+		mask-size: contain;
+        width: 100%;
+        min-width: 130vw;
+        transform: rotate(155.32deg) scale(0.65);
+    }
+    h1{
+		font-weight: 400;
+		font-size: 5.5vw;
+		line-height: 100%;
+		color: #4242E0;
+	}
+
+	.fragment-container {
+        position: relative;
+    }
+
+	.answer{
+		font-size: 1.5vw;
+	}
+
+	.fragment {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 20;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.05);
+        pointer-events: none;
+        overflow: visible;
+        transition: transform 0.5s ease-in-out;
+    }
+    
+    p, a{
+		font-weight: 400;
+		line-height: 100%;
+		color: #4242E0;
+	}
+
+    p{
+		font-size: 2vw;
+	}
+
+	a{
+		font-size: 1rem;
+	}
+</style>
+<script>
+	import * as d3 from 'd3';
+	const generateRandomPoints = (count: number) => {
+        const points = [];
+        for (let i = 0; i < count-4; i++) {
+            points.push({
+                x: Math.random() * 100,
+                y: Math.random() * 100
+            });
+        }
+        points.push({ x: 0, y: 0 });
+        points.push({ x: 0, y: 100 });
+        points.push({ x: 100, y: 100 });
+        points.push({ x: 100, y: 0 });
+        return points;
+    };
+
+    const generatePolygons = (points: { x: number; y: number; }[]) => {
+        const delaunay = d3.Delaunay.from(points.map((p: { x: any; y: any; }) => [p.x, p.y]));
+        const voronoi = delaunay.voronoi([0, 0, 100, 100]);
+        const polygons = [];
+
+        for (let i = 0; i < points.length; i++) {
+            const cell = voronoi.cellPolygon(i);
+            if (cell) {
+                polygons.push(cell.map(p => ({ x: p[0], y: p[1] })));
+            }
+        }
+        return polygons;
+    };
+
+    const createClipPath = (polygon: any[]) => {
+        const points = polygon.map((point: { x: any; y: any; }) => `${point.x}% ${point.y}%`).join(", ");
+        return `polygon(${points})`;
+    };
+    const createFragment = (card: { cloneNode: (arg0: boolean) => any; }, polygon: any, index: any) => {
+        const fragment = card.cloneNode(true);
+        fragment.classList.add('fragment', `broken${index}`);
+        const whiteLayer = document.createElement('div');
+        whiteLayer.style.position = 'absolute';
+        whiteLayer.style.top = '0';
+        whiteLayer.style.left = '0';
+        whiteLayer.style.width = '100%';
+        whiteLayer.style.height = '100%';
+        whiteLayer.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        fragment.appendChild(whiteLayer);
+        fragment.style.clipPath = createClipPath(polygon);
+        return fragment;
+    };
+
+    const getDirection = (x: number, y: number, m: number, point: { x: number; y: number; }) =>{
+        const distanceRatio = 0.5;
+        if(x < point.x){
+            return {x: (point.x+distanceRatio),y:m*(point.x+distanceRatio) + (point.y - m * point.x)};
+        }else if(x > point.x){
+            return {x: (point.x-distanceRatio),y: m*(point.x-distanceRatio) + (point.y - m * point.x)};
+        }else if(y< point.y){
+            return {x: ((point.y+distanceRatio)-((point.y) - m * point.x ))/m ,y: (point.y+distanceRatio)};
+        }else if(y > point.y){
+            return {x: ((point.y-distanceRatio)-((point.y) - m * point.x ))/m ,y: (point.y-distanceRatio)};
+        }else{
+            return {x: point.x, y: point.y};
+        }
+    }
+	const handleCardClick = (e : MouseEvent) => {
+        const card = (e.currentTarget as HTMLElement);
+        card.classList.remove('rounded-lg', 'border', 'shadow-md');
+        const fragmentCount = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+        const rect = (e.currentTarget as HTMLElement)?.children[0].getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        const points = generateRandomPoints(fragmentCount);
+        const polygons = generatePolygons(points);
+
+        for (let i = 0; i < polygons.length; i++) {
+            const fragment = createFragment(card, polygons[i], i);
+            const deltaX = x - points[i].x;
+            const deltaY = y - points[i].y;
+            const m = deltaY / deltaX;
+            const direction = getDirection(x, y, m, points[i]);
+            card.parentElement?.appendChild(fragment); 
+            setTimeout(() => {
+                fragment.classList.add('border', 'shadow-md');
+                fragment.style.transform = `translate(${(direction.x - points[i].x)*rect.width}px, ${(direction.y - points[i].y)*rect.height}px)`;
+            },0.01)
+        }
+		card.querySelectorAll('*').forEach((element: Element) => {
+			(element as HTMLElement).style.visibility = 'hidden';
+		});
+		card.style.visibility = 'hidden';
+    };
+
+	const initializeCardListeners = () => {
+        document.querySelectorAll(".valid-answer").forEach((card) => {
+            card.addEventListener("click", (e: Event) => handleCardClick(e as MouseEvent));
+        card.addEventListener("mouseover", () => {
+            card.classList.add("highlight");
+            card.querySelectorAll('*').forEach((element: Element) => {
+                (element as HTMLElement).classList.add("highlight");
+            });
+        });
+        card.addEventListener("mouseleave", () => {
+            card.classList.remove("highlight");
+            card.querySelectorAll('*').forEach((element: Element) => {
+                (element as HTMLElement).classList.remove("highlight");
+            });
+        });
+        });
+    };
+
+    initializeCardListeners();
+
+    document.addEventListener('astro:after-swap', () => {
+        initializeCardListeners();
+    });
+</script>

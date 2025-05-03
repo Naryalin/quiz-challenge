@@ -11,11 +11,16 @@ export async function getQuizzes() {
                 'X-Api-Key': apiKey
             }
         });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`HTTP ${response.status}: ${errorBody.error || 'Unknown error'}`);
+        }
         const questions = await response.json();
         return questions as Questions;
     } catch (error) {
         console.error('Error fetching quizzes:', error);
-        throw error;
+        return undefined;
     }
 }
 export async function getCategories() {

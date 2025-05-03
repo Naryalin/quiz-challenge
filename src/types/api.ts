@@ -4,14 +4,19 @@ export type Question = {
     id: number,
     question: string,
     description: string,
-    answers: Record<string, string>,
+    answers: Answers,
     multiple_correct_answers: string,
-    correct_answers: Record<string, string>,
-    correct_answer: string,
+    correct_answers: Answers,
+    correct_answer: string|null,
     explanation: string,
-    tip: string,
+    tip: string|null,
     tags: Tag[],
     category: string
+    difficulty: string
+}
+
+type Answers = {
+    [key: string]: string|null
 }
 
 type Tag = {

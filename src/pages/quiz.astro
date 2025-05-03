@@ -4,9 +4,10 @@ import { getQuizzes } from "../services/quizAPI";
 import QuizApp from "../components/quiz/QuizApp";
 
 const questions = await getQuizzes();
+console.log("here",questions);
 ---
 <Layout title=`Question` >
-    <QuizApp questions={questions}>
+    <QuizApp questions={questions} client:load>
         <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
     </QuizApp>
 </Layout>

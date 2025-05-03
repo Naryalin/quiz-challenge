@@ -23,6 +23,10 @@
 
         let currentFigureColor = [235, 239, 242];
         let targetFigureColor = currentFigureColor;
+
+        let currentButtonColor = [212, 224, 233];
+        let targetButtonColor = currentButtonColor;
+
         let isStatic = true;
 
         function hexToRgb(hex: string) {
@@ -34,10 +38,16 @@
         }
 
         function animate() {
+            const nextButton = document.querySelector(".next-button") as HTMLButtonElement;
+            if(nextButton && nextButton.disabled) {
+                currentButtonColor
+            }
+            
             if (!isStatic) {
                 for (let i = 0; i < 3; i++) {
                     currentColor[i] = lerp(currentColor[i], targetColor[i], 0.01);
                     currentFigureColor[i] = lerp(currentFigureColor[i], targetFigureColor[i], 0.01);
+                    currentButtonColor[i] = lerp(currentButtonColor[i], targetButtonColor[i], 0.01);
                 }
             }
             const textElements = document.querySelectorAll("h1, p, a");
@@ -45,12 +55,37 @@
                 (el as HTMLElement).style.color = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
             });
 
-            const options = document.querySelectorAll(".valid-answer");
+            const options = document.querySelectorAll(".valid-answer, .letter-answer, .answer");
             options.forEach((el) => {
-                (el as HTMLElement).style.borderColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                if(el.classList.contains("valid-answer") || el.classList.contains("answer")) { 
+                    (el as HTMLElement).style.borderColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                }
+                if(el.classList.contains("highlight")) {
+                    if(el.classList.contains("valid-answer")) {
+                        (el as HTMLElement).style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                    }else if (el.classList.contains("letter-answer")) {
+                        (el as HTMLElement).style.backgroundColor = `rgb(${currentColor.map(Math.round).join(",")})`;
+                        (el as HTMLElement).style.color = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                    }else if(el.classList.contains("answer")) {
+                        (el as HTMLElement).style.color = `rgb(${currentColor.map(Math.round).join(",")})`;
+                    }
+                }else{
+                    if(el.classList.contains("valid-answer")) {
+                        (el as HTMLElement).style.backgroundColor = `rgb(${currentColor.map(Math.round).join(",")})`;
+                    }else if (el.classList.contains("letter-answer")) {
+                        (el as HTMLElement).style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                        (el as HTMLElement).style.color = `rgb(${currentColor.map(Math.round).join(",")})`;
+                    }
+                }
             })
+
+            if (nextButton) {
+                nextButton.style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+            }
             
-            figure.style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+            if (figure) {
+                figure.style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+            }
 
             ctx.fillStyle = `rgb(${currentColor.map(Math.round).join(",")})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -68,6 +103,7 @@
                 targetColor = currentColor;
                 currentFigureColor = figureRgb;
                 targetFigureColor = currentFigureColor;
+                
             } else {
                 console.error("Error converting hex to RGB");
             }
@@ -75,28 +111,44 @@
             isStatic = false;
             const rgb = hexToRgb("C8D2DA");
             const figureRgb = hexToRgb("4242E0");
-            if (rgb && figureRgb) {
+            const buttonRgb = hexToRgb("4242E0");
+            if (rgb && figureRgb && buttonRgb) {
                 targetColor = rgb;
                 targetFigureColor = figureRgb;
+                targetButtonColor = buttonRgb;
             } else {
                 console.error("Error converting hex to RGB");
                 targetColor = [66, 66, 224];
                 targetFigureColor = [235, 239, 242];
+                targetButtonColor = [212, 224, 233];
             }
 
             setInterval(() => {
+                const nextButton = document.querySelector(".next-button") as HTMLButtonElement;
                 const alt = targetColor[0] === 200; // C8D2DA
                 const rgb = hexToRgb(alt ? "2A2C2D" : "C8D2DA");
 
                 const altFigure = targetFigureColor[0] === 66; // 4242E0
                 const figureRgb = hexToRgb(altFigure ? "959EA6" : "4242E0");
-                if (rgb && figureRgb) {
+
+                const altButton = targetButtonColor[0] === 200; // C8D2DA
+                const buttonRgb = hexToRgb(altButton ? "2A2C2D" : "C8D2DA");
+
+                const altButtonDisabled = targetButtonColor[0] === 212; // 4242E0
+                const buttonDisabledRgb = hexToRgb(altButtonDisabled ? "353739" : "D4E0E9");
+                if (rgb && figureRgb && buttonRgb) {
                     targetColor = rgb;
                     targetFigureColor = figureRgb;
+                    targetButtonColor = buttonRgb;
+                    if(nextButton && nextButton.disabled && buttonDisabledRgb) {
+                        console.log("disabled")
+                        targetButtonColor = buttonDisabledRgb;
+                    }
                 } else {
                     console.error("Error converting hex to RGB");
                     targetColor = [0, 0, 0];
                     targetFigureColor = [0, 0, 0];
+                    targetButtonColor = [0, 0, 0];
                 }
             }, 25000); // change color every 25 seconds
         }
