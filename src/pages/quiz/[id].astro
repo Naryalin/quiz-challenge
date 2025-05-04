@@ -20,7 +20,7 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 	<AnimatedBackground mainColor="C8D2DA" secondaryColor="2A2C2D", figureColor='4242E0', secondaryFigureColor='959EA6'/>
     <main class="min-w-screen min-h-screen w-full overflow-hidden">
         <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
-        <h1 class="question text-center mt-20" data-next-question={nextId}>Question {questionIndex + 1} / {questions.get().length}</h1>
+        <h1 class="question text-center mt-20" data-next-question={nextId} transition:name="score">Question {questionIndex + 1} / {questions.get().length}</h1>
         <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
 		<div class="flex items-center justify-center gap-2">
             <Clock class="w-4 h-4" />
@@ -139,6 +139,7 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 <script>
 	import * as d3 from 'd3';
     import { navigate } from 'astro:transitions/client';
+    import { score } from '../../store/score';
 
     let nextQuestionElement = document.querySelector('.question') as HTMLElement;
     let nextQuestionIndex = nextQuestionElement?.dataset.nextQuestion ? parseInt(nextQuestionElement.dataset.nextQuestion) : null;
@@ -212,13 +213,40 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
             return {x: point.x, y: point.y};
         }
     }
-	const handleCardClick = (e : MouseEvent) => {
+	const handleCardClick = (card: HTMLElement) => {
         const nextButton = document.querySelector('.next-button') as HTMLButtonElement;
+        const correctAnswers = Object.entries(answers)
+            .filter(([key, value]) => value === 'true')
+            .map(([key]) => key.replace('_correct', '').replace('answer_', 'answer-'));
+        const correctCards = document.querySelectorAll(correctAnswers.map(answer => `.${answer}`).join(', ')) as NodeListOf<HTMLElement>;
+
+        const classList = Array.from(card.classList);
+        const answerClass = classList.find(cls => cls.startsWith('answer-'));
+
+        console.log("checking answer", answerClass)
+        console.log("correct answers", correctAnswers)
+
+        score.set(score.get() + (correctAnswers.includes(answerClass || '') ? 1 : 0));
+        console.log("score", score.get())
+
+        correctCards.forEach((correctCard) => {
+            correctCard.classList.add('highlight');
+            correctCard.querySelectorAll('*').forEach((element: Element) => {
+                    (element as HTMLElement).classList.add("highlight");
+                });
+            correctCard.removeEventListener('click', (correctCard as any)._clickFn);
+            correctCard.removeEventListener("mouseover", (correctCard as any)._overFn);
+            correctCard.removeEventListener("mouseleave", (correctCard as any)._leaveFn);
+        })
+
         incorrectAnswers = Object.entries(answers)
             .filter(([key, value]) => value === 'false')
             .map(([key]) => key.replace('_correct', '').replace('answer_', 'answer-'));
         const incorrectCards = document.querySelectorAll(incorrectAnswers.map(answer => `.${answer}`).join(', ')) as NodeListOf<HTMLElement>;
         incorrectCards.forEach((incorrectCard) => {
+            incorrectCard.removeEventListener('click', (incorrectCard as any)._clickFn);
+            incorrectCard.removeEventListener("mouseover", (incorrectCard as any)._overFn);
+            incorrectCard.removeEventListener("mouseleave", (incorrectCard as any)._leaveFn);
             const classList = Array.from(incorrectCard.classList);
             const answerClass = classList.find(cls => cls.startsWith('answer-'));
             const answerLetter = answerClass?.split('-')[1] || '';
@@ -261,34 +289,45 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         nextButton.classList.add('cursor-pointer');
     };
 
+    const handleMouseOver = (card: HTMLElement) => () => {
+        card.classList.add("highlight");
+        card.querySelectorAll('*').forEach((element: Element) => {
+            (element as HTMLElement).classList.add("highlight");
+        });
+    };
+
+    const handleMouseLeave = (card: HTMLElement) => () => {
+        card.classList.remove("highlight");
+        card.querySelectorAll('*').forEach((element: Element) => {
+            (element as HTMLElement).classList.remove("highlight");
+        });
+    };
+
 	const initializeCardListeners = () => {
         nextQuestionElement = document.querySelector('.question') as HTMLElement;
         nextQuestionIndex = nextQuestionElement?.dataset.nextQuestion ? parseInt(nextQuestionElement.dataset.nextQuestion) : null;
         optionsElement = document.querySelector('section.Options') as HTMLElement;
         answers = JSON.parse(optionsElement?.dataset.options || '{}');
         document.querySelectorAll(".valid-answer").forEach((card) => {
-            card.addEventListener("click", (e: Event) => handleCardClick(e as MouseEvent));
-            card.addEventListener("mouseover", () => {
-                card.classList.add("highlight");
-                card.querySelectorAll('*').forEach((element: Element) => {
-                    (element as HTMLElement).classList.add("highlight");
-                });
-            });
-            card.addEventListener("mouseleave", () => {
-                card.classList.remove("highlight");
-                card.querySelectorAll('*').forEach((element: Element) => {
-                    (element as HTMLElement).classList.remove("highlight");
-                });
-            });
+            const clickFn = () => handleCardClick(card as HTMLElement);
+            const overFn = handleMouseOver(card as HTMLElement);
+            const leaveFn = handleMouseLeave(card as HTMLElement);
+
+            card.addEventListener("click", clickFn);
+            card.addEventListener("mouseover", overFn);
+            card.addEventListener("mouseleave", leaveFn);
+
+            (card as any)._clickFn = clickFn;
+            (card as any)._overFn = overFn;
+            (card as any)._leaveFn = leaveFn;
         });
         document.querySelector(".next-button")?.addEventListener("click", () => {
             const incorrectAnswersLetters = incorrectAnswers.map(answer => answer.replace('answer-', ''));
-            console.log("nextQuestionIndex", nextQuestionIndex)
             if(!nextQuestionIndex){
-                console.log("maybe is null?")
                 navigate('/results');
+            }else{
+                navigate(`/quiz/${Number(nextQuestionIndex)}?fc=${fragmentCount}&l=${JSON.stringify(incorrectAnswersLetters)}`);
             }
-            navigate(`/quiz/${Number(nextQuestionIndex)}?fc=${fragmentCount}&l=${JSON.stringify(incorrectAnswersLetters)}`);
         });
     };
 

@@ -18,7 +18,7 @@ if (questions && questions.length > 0) {
 	<AnimatedBackground mainColor="4242e0" figureColor='EBEFF2'/>
 	<main class="min-w-screen min-h-screen w-full">
 		<div id="figure" class="fixed -top-[73%] -left-[27%] -z-10" transition:name="figure"></div>
-		<section id="hero" class="absolute left-2/5 top-4/12">
+		<section id="hero" class="absolute left-2/5 top-4/12" transition:name="hero">
 			<h1 class="text-center">Quizzler</h1>
 			<div id="By" class="flex flex-row gap-[1vw] justify-end">
 				<p class="text-center mt-[-0.5vw]">By:</p>
@@ -28,7 +28,7 @@ if (questions && questions.length > 0) {
 				</div>
 			</div>
 			<div class="flex justify-end mt-[3vw]">
-				<a href=`/quiz/${firstId}` class="flex justify-end items-center hover:underline w-fit">
+				<a href=`/quiz/${firstId}` class="flex justify-end items-center hover:underline w-fit" transition:name="link">
 					Let's start the Quiz
 					<Arrow/>
 				</a>

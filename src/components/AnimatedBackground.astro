@@ -17,8 +17,8 @@ const { mainColor, secondaryColor, figureColor, secondaryFigureColor } = {
     ...Astro.props
 };
 ---
-<astro-bgcanvas class="fixed top-0 left-0 w-full h-full -z-10" transition:name="bg" transition:persist data-colors={JSON.stringify({mainColor, secondaryColor, figureColor, secondaryFigureColor})}>
-    <canvas id="bgCanvas"></canvas>
+<astro-bgcanvas class="fixed top-0 left-0 w-full h-full -z-10" transition:name="bg" data-colors={JSON.stringify({mainColor, secondaryColor, figureColor, secondaryFigureColor})}>
+    <canvas id="bgCanvas" transition:persist></canvas>
 </astro-bgcanvas>
 <script>
 	// Using a canvas for the background due to the limitation of View Transitions
@@ -49,8 +49,6 @@ const { mainColor, secondaryColor, figureColor, secondaryFigureColor } = {
 
             let isStatic = !secondaryColor;
 
-            console.log("check", isStatic, currentColor, targetColor);
-
             function hexToRgb(hex: string) {
                 const match = hex.match(/[A-Fa-f0-9]{2}/g);
                 return match ? match.map((x: string) => parseInt(x, 16)) : null;
@@ -74,7 +72,11 @@ const { mainColor, secondaryColor, figureColor, secondaryFigureColor } = {
                 }
                 const textElements = document.querySelectorAll("h1, p, a");
                 textElements.forEach((el) => {
-                    (el as HTMLElement).style.color = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                    if (el.classList.contains("alternative")) {
+                        (el as HTMLElement).style.color = `rgb(${currentColor.map(Math.round).join(",")})`;
+                    } else{
+                        (el as HTMLElement).style.color = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                    }
                 });
 
                 const options = document.querySelectorAll(".valid-answer, .letter-answer, .answer");
@@ -115,6 +117,8 @@ const { mainColor, secondaryColor, figureColor, secondaryFigureColor } = {
             }
 
             setInterval(() => {
+                isStatic = !secondaryColor;
+                console.log("isStatic", isStatic)
                 const nextButton = document.querySelector(".next-button") as HTMLButtonElement;
                 const alt = targetColor === hexToRgb(mainColor); // C8D2DA
                 const rgb = hexToRgb(alt ? secondaryColor : mainColor);
