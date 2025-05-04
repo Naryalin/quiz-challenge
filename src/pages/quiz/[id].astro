@@ -1,46 +1,73 @@
 ---
+import AnimatedBackground from "../../components/AnimatedBackground.astro";
 import Layout from "../../layouts/Layout.astro";
 import { questions } from "../../store/questions";
-import { Clock } from "lucide";
-import LucideIcon from "../../components/LucideIcon.astro";
+import { Clock } from "@lucide/astro";
+
+const fragmentCount = Astro.url.searchParams.get('fc') ? parseInt(Astro.url.searchParams.get('fc') || '') : 0
+const letters = Astro.url.searchParams.get('l') ? JSON.parse(Astro.url.searchParams.get('l') || '') : []
 
 const { id } = Astro.params as { id: string };
 
 const questionIndex = questions.get().findIndex((q) => q.id === parseInt(id));
 const question = questionIndex !== -1 ? questions.get()[questionIndex] : null;
+if (!question) {
+    return Astro.redirect("/");
+}
 const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().length ? questions.get()[questionIndex + 1].id : null;
 ---
 <Layout title=`Question ${questionIndex + 1}` >
+	<AnimatedBackground mainColor="C8D2DA" secondaryColor="2A2C2D", figureColor='4242E0', secondaryFigureColor='959EA6'/>
     <main class="min-w-screen min-h-screen w-full overflow-hidden">
         <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
-        <h1 class="text-center mt-20">Question {questionIndex + 1} / {questions.get().length}</h1>
+        <h1 class="question text-center mt-20" data-next-question={nextId}>Question {questionIndex + 1} / {questions.get().length}</h1>
         <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
-		<div class="flex items-center gap-2">
-			<LucideIcon icon={Clock} className="h-4 w-4" />
-			<span class={`font-medium 'text-red-500' : ''}`}>0s</span>
+		<div class="flex items-center justify-center gap-2">
+            <Clock class="w-4 h-4" />
+			<span class={`font-medium`}>0s</span>
 		</div>
-		<section class="Options flex items-center justify-center flex-col gap-2">
+		<section class="Options flex items-center justify-center flex-col gap-2" data-options={JSON.stringify(question?.correct_answers)}>
 			{
 				Object.entries(question?.answers || {}).map(([key, answer], index) => 
 				(
 					!!answer  && (
 						<div class="fragment-container max-w-[50%] w-full">
 							<div
-								class={`valid-answer p-4 border-2 w-full cursor-pointer transition-all bg-white}`}
+								class={`valid-answer p-4 border-2 w-full cursor-pointer transition-all bg-white answer-${String.fromCharCode(97 + index)} ${fragmentCount > 0 && letters.includes(String.fromCharCode(66 + index).toLowerCase()) ? 'appearing' : ''}`}
 								transition:name={`${key}`}
 							>
 								<div class="flex items-center justify-start">
-									<span class={`letter-answer rounded-full border-2 w-8 h-8 min-h-8 min-w-8 flex items-center justify-center`}>
+									<span class={`letter-answer rounded-full border-2 w-10 h-10 min-h-10 min-w-10 flex items-center justify-center`}>
 										{String.fromCharCode(65 + index)}
 									</span>
 									<p class={`answer ml-2`}>{answer}</p>
 								</div>
 							</div>
+                            {Array.from({ length: fragmentCount }).map((_, i) => (
+                                letters.includes(String.fromCharCode(65 + index).toLowerCase()) && (
+                                    <div class="fragment p-4 border-2 w-full cursor-pointer transition-all bg-white" transition:name={`${String.fromCharCode(65 + index).toLowerCase()}${i}`}>
+                                        <div class="flex items-center justify-start">
+                                            <span class={`letter-answer rounded-full border-2 w-10 h-10 min-h-10 min-w-10 flex items-center justify-center`}>
+                                                {String.fromCharCode(65 + index)}
+                                            </span>
+                                            <p class={`answer ml-2`}>{answer}</p>
+                                        </div>
+                                    </div>
+                                )
+                            ))}
 						</div>
 					)
 				))
 			}
 		</section>
+        <div class="flex items-center justify-center mt-4">
+            <button
+              class={`next-button px-4 py-2 text-white`}
+              disabled={true}
+            >
+              {questionIndex === questions.get().length - 1 ? 'Finish' : 'Next'}
+            </button>
+          </div>
     </main>
 </Layout>
 <style>
@@ -73,13 +100,10 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         position: absolute;
         top: 0;
         left: 0;
-        z-index: 20;
-        width: 100%;
-        height: 100%;
         background-color: rgba(255, 255, 255, 0.05);
         pointer-events: none;
         overflow: visible;
-        transition: transform 0.5s ease-in-out;
+        transition: all 0.4s ease-in;
     }
     
     p, a{
@@ -95,9 +119,35 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 	a{
 		font-size: 1rem;
 	}
+
+    .letter-answer{
+        font-family: 'Bebas Neue', cursive;
+        font-size: 2vw;
+    }
+
+    .appearing {
+        opacity: 0;
+        animation: appear 400ms forwards;
+    }
+
+    @keyframes appear {
+        to {
+            opacity: 1;
+        }
+    }
 </style>
 <script>
 	import * as d3 from 'd3';
+    import { navigate } from 'astro:transitions/client';
+
+    let nextQuestionElement = document.querySelector('.question') as HTMLElement;
+    let nextQuestionIndex = nextQuestionElement?.dataset.nextQuestion ? parseInt(nextQuestionElement.dataset.nextQuestion) : null;
+    let optionsElement = document.querySelector('section.Options') as HTMLElement;
+    let answers = JSON.parse(optionsElement?.dataset.options || '{}');
+
+    let fragmentCount = 0
+    let incorrectAnswers: string[] = [];
+
 	const generateRandomPoints = (count: number) => {
         const points = [];
         for (let i = 0; i < count-4; i++) {
@@ -131,7 +181,7 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         const points = polygon.map((point: { x: any; y: any; }) => `${point.x}% ${point.y}%`).join(", ");
         return `polygon(${points})`;
     };
-    const createFragment = (card: { cloneNode: (arg0: boolean) => any; }, polygon: any, index: any) => {
+    const createFragment = (card: { cloneNode: (arg0: boolean) => any; }, polygon: any, index: any, answer: string) => {
         const fragment = card.cloneNode(true);
         fragment.classList.add('fragment', `broken${index}`);
         const whiteLayer = document.createElement('div');
@@ -140,14 +190,16 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         whiteLayer.style.left = '0';
         whiteLayer.style.width = '100%';
         whiteLayer.style.height = '100%';
-        whiteLayer.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        whiteLayer.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
         fragment.appendChild(whiteLayer);
+        fragment.removeAttribute('data-astro-transition-scope');
+        fragment.style.viewTransitionName = `${answer}${index}`;
         fragment.style.clipPath = createClipPath(polygon);
         return fragment;
     };
 
     const getDirection = (x: number, y: number, m: number, point: { x: number; y: number; }) =>{
-        const distanceRatio = 0.5;
+        const distanceRatio = 0.2;
         if(x < point.x){
             return {x: (point.x+distanceRatio),y:m*(point.x+distanceRatio) + (point.y - m * point.x)};
         }else if(x > point.x){
@@ -161,48 +213,82 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         }
     }
 	const handleCardClick = (e : MouseEvent) => {
-        const card = (e.currentTarget as HTMLElement);
-        card.classList.remove('rounded-lg', 'border', 'shadow-md');
-        const fragmentCount = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
-        const rect = (e.currentTarget as HTMLElement)?.children[0].getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        const points = generateRandomPoints(fragmentCount);
-        const polygons = generatePolygons(points);
+        const nextButton = document.querySelector('.next-button') as HTMLButtonElement;
+        incorrectAnswers = Object.entries(answers)
+            .filter(([key, value]) => value === 'false')
+            .map(([key]) => key.replace('_correct', '').replace('answer_', 'answer-'));
+        const incorrectCards = document.querySelectorAll(incorrectAnswers.map(answer => `.${answer}`).join(', ')) as NodeListOf<HTMLElement>;
+        incorrectCards.forEach((incorrectCard) => {
+            const classList = Array.from(incorrectCard.classList);
+            const answerClass = classList.find(cls => cls.startsWith('answer-'));
+            const answerLetter = answerClass?.split('-')[1] || '';
 
-        for (let i = 0; i < polygons.length; i++) {
-            const fragment = createFragment(card, polygons[i], i);
-            const deltaX = x - points[i].x;
-            const deltaY = y - points[i].y;
-            const m = deltaY / deltaX;
-            const direction = getDirection(x, y, m, points[i]);
-            card.parentElement?.appendChild(fragment); 
-            setTimeout(() => {
-                fragment.classList.add('border', 'shadow-md');
-                fragment.style.transform = `translate(${(direction.x - points[i].x)*rect.width}px, ${(direction.y - points[i].y)*rect.height}px)`;
-            },0.01)
-        }
-		card.querySelectorAll('*').forEach((element: Element) => {
-			(element as HTMLElement).style.visibility = 'hidden';
-		});
-		card.style.visibility = 'hidden';
+            incorrectCard.classList.remove('rounded-lg', 'border', 'shadow-md', 'highlight');
+            fragmentCount = Math.floor(Math.random() * (10 - 4 + 1)) + 4;
+            const rect = (incorrectCard as HTMLElement)?.children[0].getBoundingClientRect();
+            const buttonRect = nextButton.getBoundingClientRect();
+            const groundY = buttonRect.top;
+            const x = 50;
+            const y = 50;
+            const points = generateRandomPoints(fragmentCount);
+            const polygons = generatePolygons(points);
+
+            for (let i = 0; i < polygons.length; i++) {
+                const fragment = createFragment(incorrectCard, polygons[i], i, answerLetter);
+                const deltaX = x - points[i].x;
+                const deltaY = y - points[i].y;
+                const m = deltaY / deltaX;
+                const direction = getDirection(x, y, m, points[i]);
+                incorrectCard.parentElement?.appendChild(fragment); 
+                requestAnimationFrame(() => {
+                    fragment.classList.add('border', 'shadow-md', 'opacity-40', '-z-10');
+                    fragment.style.transform = `translate(${(direction.x - points[i].x) * rect.width}px, ${(direction.y - points[i].y) * rect.height}px)`;
+                });
+
+                const fall = groundY - rect.top + (rect.height / 2);
+                setTimeout(() => {
+                    const rotation = (Math.random() - 0.5) * 20; // Random rotation between -10 and 10 degrees
+                    fragment.style.transform = `translate(${(direction.x - points[i].x) * rect.width}px, ${fall}px) rotate(${rotation}deg)`;
+                }, 400);
+            }
+            
+            incorrectCard.querySelectorAll('*').forEach((element: Element) => {
+                (element as HTMLElement).style.visibility = 'hidden';
+            });
+            incorrectCard.style.visibility = 'hidden';
+        })
+        nextButton.disabled = false;
+        nextButton.classList.add('cursor-pointer');
     };
 
 	const initializeCardListeners = () => {
+        nextQuestionElement = document.querySelector('.question') as HTMLElement;
+        nextQuestionIndex = nextQuestionElement?.dataset.nextQuestion ? parseInt(nextQuestionElement.dataset.nextQuestion) : null;
+        optionsElement = document.querySelector('section.Options') as HTMLElement;
+        answers = JSON.parse(optionsElement?.dataset.options || '{}');
         document.querySelectorAll(".valid-answer").forEach((card) => {
             card.addEventListener("click", (e: Event) => handleCardClick(e as MouseEvent));
-        card.addEventListener("mouseover", () => {
-            card.classList.add("highlight");
-            card.querySelectorAll('*').forEach((element: Element) => {
-                (element as HTMLElement).classList.add("highlight");
+            card.addEventListener("mouseover", () => {
+                card.classList.add("highlight");
+                card.querySelectorAll('*').forEach((element: Element) => {
+                    (element as HTMLElement).classList.add("highlight");
+                });
+            });
+            card.addEventListener("mouseleave", () => {
+                card.classList.remove("highlight");
+                card.querySelectorAll('*').forEach((element: Element) => {
+                    (element as HTMLElement).classList.remove("highlight");
+                });
             });
         });
-        card.addEventListener("mouseleave", () => {
-            card.classList.remove("highlight");
-            card.querySelectorAll('*').forEach((element: Element) => {
-                (element as HTMLElement).classList.remove("highlight");
-            });
-        });
+        document.querySelector(".next-button")?.addEventListener("click", () => {
+            const incorrectAnswersLetters = incorrectAnswers.map(answer => answer.replace('answer-', ''));
+            console.log("nextQuestionIndex", nextQuestionIndex)
+            if(!nextQuestionIndex){
+                console.log("maybe is null?")
+                navigate('/results');
+            }
+            navigate(`/quiz/${Number(nextQuestionIndex)}?fc=${fragmentCount}&l=${JSON.stringify(incorrectAnswersLetters)}`);
         });
     };
 
@@ -210,5 +296,12 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 
     document.addEventListener('astro:after-swap', () => {
         initializeCardListeners();
+    });
+    document.addEventListener('astro:page-load', () => {
+        setTimeout(() => {
+            document.querySelectorAll('.fragment').forEach(fragment => {
+                fragment.remove();
+            });
+        }, 400);
     });
 </script>

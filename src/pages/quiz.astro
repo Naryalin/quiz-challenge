@@ -4,7 +4,6 @@ import { getQuizzes } from "../services/quizAPI";
 import QuizApp from "../components/quiz/QuizApp";
 
 const questions = await getQuizzes();
-console.log("here",questions);
 ---
 <Layout title=`Question` >
     <QuizApp questions={questions} client:load>

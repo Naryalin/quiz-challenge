@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Arrow from "../components/Arrow.astro";
 import { questions as questionsStore } from "../store/questions";
 import { getQuizzes } from "../services/quizAPI";
+import AnimatedBackground from '../components/AnimatedBackground.astro';
 
 // Get questions
 const questions = await getQuizzes();
@@ -14,6 +15,7 @@ if (questions && questions.length > 0) {
 ---
 
 <Layout title="Welcome to Quizzler">
+	<AnimatedBackground mainColor="4242e0" figureColor='EBEFF2'/>
 	<main class="min-w-screen min-h-screen w-full">
 		<div id="figure" class="fixed -top-[73%] -left-[27%] -z-10" transition:name="figure"></div>
 		<section id="hero" class="absolute left-2/5 top-4/12">
