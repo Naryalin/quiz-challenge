@@ -2,6 +2,7 @@
 import AnimatedBackground from "../../components/AnimatedBackground.astro";
 import Layout from "../../layouts/Layout.astro";
 import Figure from "../../components/Figure.astro";
+import Public from "../../components/Public.astro";
 import { questions } from "../../store/questions";
 import { Clock } from "@lucide/astro";
 
@@ -21,6 +22,7 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 	<AnimatedBackground mainColor="C8D2DA" secondaryColor="2A2C2D", figureColor='4242E0', secondaryFigureColor='959EA6'/>
     <main class="min-w-screen min-h-screen w-full overflow-hidden">
         <Figure/>
+        <Public/>
         <h1 class="question text-center mt-20" data-next-question={nextId} transition:name="score">Question {questionIndex + 1} / {questions.get().length}</h1>
         <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
 		<div class="flex items-center justify-center gap-2" transition:name="timer">
@@ -147,7 +149,6 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            console.log("Interval", countdown)
             countdown--;
             timer.textContent = `${countdown}s`;
 
@@ -236,13 +237,20 @@ const handleCardClick = (card?: HTMLElement) => {
         const classList = card ? Array.from(card.classList) : [];
         const answerClass = classList.find(cls => cls.startsWith('answer-')) || '';
 
+        const currentScore = score.get();
+
+        const isCorrect = correctAnswers.includes(answerClass || '');
+
         if (timerInterval) clearInterval(timerInterval);
 
-        console.log("checking answer", answerClass)
-        console.log("correct answers", correctAnswers)
-
-        score.set(score.get() + (correctAnswers.includes(answerClass || '') ? 1 : 0));
-        console.log("score", score.get())
+        if (isCorrect) {
+            score.set(currentScore + 1);
+        } else {
+            score.set(-1);             // Indicates incorrect answer/ didn't answer on time
+            setTimeout(() => {
+                score.set(currentScore); // Restore score
+            }, 0);
+        }
 
         correctCards.forEach((correctCard) => {
             correctCard.classList.add('highlight');

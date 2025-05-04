@@ -200,6 +200,8 @@ questionsStore.set(questions);
 	}
 </style>
 <script>
+	import { score } from "../store/score";
+	score.set(0);
 	const anchor = document.querySelector('a') as HTMLAnchorElement;
 	const arrow = document.getElementsByClassName('arrow')[0] as HTMLElement;
 	anchor.addEventListener('mouseover', () => arrow.classList.add('go'));
