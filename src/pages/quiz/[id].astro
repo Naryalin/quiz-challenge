@@ -128,6 +128,26 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
             opacity: 1;
         }
     }
+    @media screen and (max-width:768px){
+        .fragment-container{
+            max-width: 80%;
+        }
+		p{
+			font-size: 2rem;
+		}
+        .answer, .letter-answer{
+            font-size: 1.5rem;
+        }
+	}
+    @media screen and (max-width:512px){
+        p{
+			font-size: 1.5rem;
+		}
+        .answer, .letter-answer{
+            font-size: 1rem;
+        }
+        
+    }
 </style>
 <script>
 	import * as d3 from 'd3';
