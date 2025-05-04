@@ -3,12 +3,13 @@ import Layout from '../layouts/Layout.astro';
 import { RefreshCw } from "@lucide/astro";
 import AnimatedBackground from '../components/AnimatedBackground.astro';
 import { questions } from "../store/questions";
+import Figure from '../components/Figure.astro';
 ---
 
 <Layout title="Welcome to Quizzler">
 	<AnimatedBackground mainColor="4242e0" figureColor='EBEFF2'/>
 	<main class="min-w-screen flex flex-row min-h-screen h-screen w-full items-center justify-between px-10">
-		<div id="figure" class="fixed -top-[73%] -left-[27%] -z-10" transition:name="figure"></div>
+		<Figure/>
 		<section id="hero" class="flex flex-col items-center justify-center max-w-[45%]" transition:name="hero">
 			<h1 class="text-center">Bravo!</h1>
             <h2 class="text-center">You have scored</h2>
@@ -27,17 +28,6 @@ import { questions } from "../store/questions";
 
 	
 <style>
-	#figure{
-		background-color: #EBEFF2;
-		-webkit-mask: url("/2D Figure.svg") no-repeat center;
-		mask: url("/2D Figure.svg") no-repeat center;
-		aspect-ratio: 1/1;
-		mask-size: contain;
-        width: 100%;
-        min-width: 130vw;
-		transform: rotate(155.32deg);
-	}
-
     #results{
         background-color: #EBEFF2;
     }

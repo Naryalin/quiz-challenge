@@ -108,7 +108,8 @@ const { mainColor, secondaryColor, figureColor, secondaryFigureColor } = {
                 }
                 
                 if (figure) {
-                    figure.style.backgroundColor = `rgb(${currentFigureColor.map(Math.round).join(",")})`;
+                    const rgb = currentFigureColor.map(Math.round).join(",");
+                    figure.className = `figure-color-${rgb.replace(/,/g, "-")}`;
                 }
 
                 ctx.fillStyle = `rgb(${currentColor.map(Math.round).join(",")})`;

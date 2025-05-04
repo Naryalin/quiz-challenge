@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@astrojs/react": "^4.2.6",
-    "@astrojs/vercel": "^8.1.4",
     "@lucide/astro": "^0.507.0",
     "@tailwindcss/vite": "^4.1.4",
     "@types/react": "^19.1.2",
@@ -23,9 +22,11 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.3",
-    "tailwindcss": "^4.1.4"
+    "tailwindcss": "^4.1.4",
+    "three": "^0.176.0"
   },
   "devDependencies": {
-    "@types/d3": "^7.4.3"
+    "@types/d3": "^7.4.3",
+    "@types/three": "^0.176.0"
   }
 }

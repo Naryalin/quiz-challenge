@@ -1,6 +1,7 @@
 ---
 import AnimatedBackground from "../../components/AnimatedBackground.astro";
 import Layout from "../../layouts/Layout.astro";
+import Figure from "../../components/Figure.astro";
 import { questions } from "../../store/questions";
 import { Clock } from "@lucide/astro";
 
@@ -19,7 +20,7 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
 <Layout title=`Question ${questionIndex + 1}` >
 	<AnimatedBackground mainColor="C8D2DA" secondaryColor="2A2C2D", figureColor='4242E0', secondaryFigureColor='959EA6'/>
     <main class="min-w-screen min-h-screen w-full overflow-hidden">
-        <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
+        <Figure/>
         <h1 class="question text-center mt-20" data-next-question={nextId} transition:name="score">Question {questionIndex + 1} / {questions.get().length}</h1>
         <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
 		<div class="flex items-center justify-center gap-2" transition:name="timer">
@@ -71,16 +72,6 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
     </main>
 </Layout>
 <style>
-    #figure{
-        background-color: #4242E0;
-		-webkit-mask: url("/2D Figure.svg") no-repeat center;
-		mask: url("/2D Figure.svg") no-repeat center;
-		aspect-ratio: 1/1;
-		mask-size: contain;
-        width: 100%;
-        min-width: 130vw;
-        transform: rotate(155.32deg) scale(0.65);
-    }
     h1{
 		font-weight: 400;
 		font-size: 5.5vw;
