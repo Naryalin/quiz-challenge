@@ -19,7 +19,11 @@ export default defineConfig({
       QUIZ_API_KEY: envField.string({
         context: "server",
         access: "secret"
-      })
+      }),
+      MISTRAL_API_KEY: envField.string({
+        context: "server",
+        access: "secret"
+      }),
     }
   },
 });
