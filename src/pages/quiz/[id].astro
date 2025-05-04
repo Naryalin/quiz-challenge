@@ -22,9 +22,9 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
         <div id="figure" class="fixed -top-[73%] -left-[52%] -z-10" transition:name="figure"></div>
         <h1 class="question text-center mt-20" data-next-question={nextId} transition:name="score">Question {questionIndex + 1} / {questions.get().length}</h1>
         <p class="text-center max-w-[50%] mx-auto">{question?.question}</p>
-		<div class="flex items-center justify-center gap-2">
+		<div class="flex items-center justify-center gap-2" transition:name="timer">
             <Clock class="w-4 h-4" />
-			<span class={`font-medium`}>0s</span>
+			<span class={`font-medium`} id="timer">0s</span>
 		</div>
 		<section class="Options flex items-center justify-center flex-col gap-2" data-options={JSON.stringify(question?.correct_answers)}>
 			{
@@ -146,6 +146,28 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
     let optionsElement = document.querySelector('section.Options') as HTMLElement;
     let answers = JSON.parse(optionsElement?.dataset.options || '{}');
 
+    let timerInterval: number | null = null;
+    let countdown = 30;
+
+    const startTimer = () => {
+        let timer = document.querySelector('#timer') as HTMLElement;
+        countdown = 30;
+        timer.textContent = `${countdown}s`;
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            console.log("Interval", countdown)
+            countdown--;
+            timer.textContent = `${countdown}s`;
+
+            if (countdown <= 0) {
+                clearInterval(timerInterval!);
+                timerInterval = null;
+                handleCardClick();
+            }
+        }, 1000);
+    };
+
     let fragmentCount = 0
     let incorrectAnswers: string[] = [];
 
@@ -213,15 +235,17 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
             return {x: point.x, y: point.y};
         }
     }
-	const handleCardClick = (card: HTMLElement) => {
+const handleCardClick = (card?: HTMLElement) => {
         const nextButton = document.querySelector('.next-button') as HTMLButtonElement;
         const correctAnswers = Object.entries(answers)
             .filter(([key, value]) => value === 'true')
             .map(([key]) => key.replace('_correct', '').replace('answer_', 'answer-'));
         const correctCards = document.querySelectorAll(correctAnswers.map(answer => `.${answer}`).join(', ')) as NodeListOf<HTMLElement>;
 
-        const classList = Array.from(card.classList);
-        const answerClass = classList.find(cls => cls.startsWith('answer-'));
+        const classList = card ? Array.from(card.classList) : [];
+        const answerClass = classList.find(cls => cls.startsWith('answer-')) || '';
+
+        if (timerInterval) clearInterval(timerInterval);
 
         console.log("checking answer", answerClass)
         console.log("correct answers", correctAnswers)
@@ -342,5 +366,6 @@ const nextId = questionIndex !== -1 && questionIndex + 1 < questions.get().lengt
                 fragment.remove();
             });
         }, 400);
+        startTimer();
     });
 </script>
